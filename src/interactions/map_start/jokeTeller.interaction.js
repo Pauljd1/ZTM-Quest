@@ -8,11 +8,26 @@ export const interactionWithJokeTeller = (player, k, map) => {
 
 const fetchJoke = async (player, k) => {
     try {
-        const response = await fetch('https://v2.jokeapi.dev/joke/Any');
+        const blacklistFlags = [
+            'nsfw',
+            'religious',
+            'political',
+            'racist',
+            'sexist',
+            'explicit',
+        ];
+        const response = await fetch('https://v2.jokeapi.dev/joke/Programming');
+
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
+
         const jokeData = await response.json();
+
+        if (isJokeBlacklisted(jokeData, blacklistFlags)) {
+            return fetchJoke(player, k);
+        }
+
         handleJokeResponse(jokeData, player, k);
     } catch (error) {
         console.error('Failed to fetch joke:', error);
@@ -21,6 +36,10 @@ const fetchJoke = async (player, k) => {
             'I am having trouble finding a joke right now.'
         );
     }
+};
+
+const isJokeBlacklisted = (jokeData, blacklistFlags) => {
+    return blacklistFlags.some((flag) => jokeData[flag]);
 };
 
 const handleJokeResponse = (jokeData, player, k) => {
